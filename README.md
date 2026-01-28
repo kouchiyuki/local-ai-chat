@@ -46,5 +46,3 @@ uvicorn main:app --reload
 * **フロントエンド**: HTML/JavaScriptを使用。`fetch API` と `ReadableStream` を使い、AIの回答を1文字ずつリアルタイムに表示（ストリーミング）します。
 * **バックエンド**: `FastAPI` を採用。ローカルで動く `Ollama API` へリクエストを転送します。
 * **AIモデル**: `Gemma 3 (4b)` を使用。ローカルPCのCPU/GPUリソースのみで推論を行います。
-
-```
