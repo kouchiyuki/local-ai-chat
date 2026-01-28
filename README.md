@@ -1,4 +1,3 @@
-```markdown
 # Local AI Chat App
 
 このアプリは、AIチャットツールです。
