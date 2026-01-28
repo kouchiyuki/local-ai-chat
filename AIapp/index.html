@@ -20,10 +20,15 @@
         <input type="text" id="user-input" placeholder="メッセージを入力..." onkeypress="if(event.key==='Enter') sendMessage()">
         <button onclick="sendMessage()">送信</button>
     </div>
+    <div style="padding: 10px 20px;">
+        <label style="font-size: 0.8rem; color: #666;">AIの性格設定：</label>
+        <input type="text" id="system-input" placeholder="例：語尾に『にゃ』をつけて" style="width: 100%; margin-top: 5px;">
+    </div>
 
     <script>
         async function sendMessage() {
             const input = document.getElementById('user-input');
+            const systemInput = document.getElementById('system-input');
             const chatBox = document.getElementById('chat-box');
             const text = input.value.trim();
             if (!text) return;
@@ -35,7 +40,7 @@
             // AIのメッセージ用空枠を作成
             const aiMsgDiv = document.createElement('div');
             aiMsgDiv.className = 'message ai';
-            aiMsgDiv.innerText = "..."; // 考えてる風
+            aiMsgDiv.innerText = "..."; // 考えてる風の表示
             chatBox.appendChild(aiMsgDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
 
@@ -43,7 +48,10 @@
                 const response = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text })
+                    body: JSON.stringify({ 
+                        message: text,
+                        system_prompt: systemInput.value // 性格設定を送信
+                     })
                 });
 
                 // ストリームを読み取る準備
@@ -68,5 +76,4 @@
         }
     </script>
 </body>
-
 </html>
