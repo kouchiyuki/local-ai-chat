@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Streaming AI Chat</title>
+    <style>
+        body { font-family: sans-serif; background: #e5ddd5; display: flex; flex-direction: column; height: 100vh; margin: 0; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
+        .message { margin-bottom: 12px; padding: 10px 15px; border-radius: 15px; max-width: 80%; line-height: 1.5; word-wrap: break-word; }
+        .user { background: #dcf8c6; align-self: flex-end; color: #000; }
+        .ai { background: #fff; align-self: flex-start; color: #000; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+        #input-area { display: flex; padding: 15px; background: #f0f0f0; border-top: 1px solid #ccc; }
+        input { flex: 1; padding: 12px; border: none; border-radius: 20px; outline: none; }
+        button { margin-left: 10px; padding: 0 20px; background: #075e54; color: white; border: none; border-radius: 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="chat-box"></div>
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="メッセージを入力..." onkeypress="if(event.key==='Enter') sendMessage()">
+        <button onclick="sendMessage()">送信</button>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const chatBox = document.getElementById('chat-box');
+            const text = input.value.trim();
+            if (!text) return;
+
+            // ユーザーのメッセージを表示
+            chatBox.innerHTML += `<div class="message user">${text}</div>`;
+            input.value = '';
+
+            // AIのメッセージ用空枠を作成
+            const aiMsgDiv = document.createElement('div');
+            aiMsgDiv.className = 'message ai';
+            aiMsgDiv.innerText = "..."; // 考えてる風の表示
+            chatBox.appendChild(aiMsgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+
+                // ストリームを読み取る準備
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                aiMsgDiv.innerText = ""; // 溜めをクリア
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    // 届いた破片をデコードして追加
+                    const chunk = decoder.decode(value, { stream: true });
+                    aiMsgDiv.innerText += chunk;
+
+                    // 常に最新のメッセージが見えるようにスクロール
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            } catch (e) {
+                aiMsgDiv.innerText = "エラーが起きました。Ollamaが動いているか確認してください。";
+            }
+        }
+    </script>
+</body>
+</html>
